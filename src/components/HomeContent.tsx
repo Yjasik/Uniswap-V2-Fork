@@ -12,7 +12,7 @@ export default function Home() {
           <img 
             src="/LogoUniswap.png" 
             alt="Uniswap Logo" 
-            className="w-10 h-10"
+            className="w-20 h-20"
           />
           <h1 className={styles.headTitle}>Uniswap 2.0</h1>
         </div>
