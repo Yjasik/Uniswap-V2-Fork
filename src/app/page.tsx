@@ -29,6 +29,11 @@ export default function Home() {
                   Please connect a wallet to start swapping . . .
                 </p>
               </div>
+              <img 
+                  src="/logoEther.png" 
+                  alt="Ether Logo" 
+                  className="w-64 h-64"
+                />
             </div>
           </div>
         ) : (
