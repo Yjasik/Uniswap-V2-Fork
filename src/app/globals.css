@@ -17,9 +17,9 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* Кастомные градиенты */
+/* Кастомные градиенты - розовые оттенки */
 .gradient_btn {
-  background: linear-gradient(103.91deg, #9b51e0 21.01%, rgba(48, 129, 237, 0.8) 100%);
+  background: linear-gradient(103.91deg, #f97316 21.01%, #fb37ff 100%);
 }
 
 .pink_gradient {
@@ -29,8 +29,9 @@ input[type="number"] {
   width: 123px;
   height: 123px;
   border-radius: 50%;
-  background: #fb37ff;
+  background: #f472b6;
   filter: blur(200px);
+  opacity: 0.4;
 }
 
 .blue_gradient {
@@ -40,10 +41,17 @@ input[type="number"] {
   width: 123px;
   height: 123px;
   border-radius: 50%;
-  background: #18b2de;
+  background: #f9a8d4;
   filter: blur(200px);
+  opacity: 0.4;
 }
 
 .gradient-border {
-  background: linear-gradient(168.82deg, #fb37ff 1.7%, rgba(155, 111, 238, 0) 27.12%, rgba(123, 127, 234, 0) 61.28%, #1bb2de 99.52%);
+  background: linear-gradient(
+    168.82deg, 
+    #fb37ff 1.7%, 
+    rgba(244, 114, 182, 0.3) 27.12%,
+    rgba(249, 168, 212, 0.1) 61.28%, 
+    #f472b6 99.52%
+  );
 }

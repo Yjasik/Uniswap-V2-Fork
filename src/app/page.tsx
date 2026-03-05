@@ -1,6 +1,40 @@
 "use client"
 import HomeContent from "@/components/HomeContent"
+import styles from "@/styles"
+import { ConnectButton } from "@rainbow-me/rainbowkit"
+import { useAccount } from "wagmi"
 
 export default function Home() {
-    return <HomeContent />
+    const { isConnected } = useAccount()
+
+    return (
+      <div className={styles.container}>
+        {!isConnected ? (
+          <div className={styles.innerContainer}>  
+            <header className={styles.header}>
+              <div className="flex items-center gap-2">
+                <img 
+                  src="/LogoUniswap.png" 
+                  alt="Uniswap Logo" 
+                  className="w-16 h-16"
+                />
+              </div>
+              <ConnectButton/>
+            </header>
+                
+            <div className={styles.exchangeContainer}>
+              <h1 className={styles.headTitle}>Uniswap 2.0</h1>
+              <div className={styles.exchangeBoxWrapper}>
+                <p className={styles.subTitle}>
+                  Please connect a wallet to start swapping . . .
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+            <HomeContent/>
+                ) }
+                
+      </div>
+    )
 }

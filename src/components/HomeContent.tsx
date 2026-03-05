@@ -1,30 +1,33 @@
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import Image from "next/image";
-import styles from "../styles";
+import { ConnectButton } from "@rainbow-me/rainbowkit"
+import Exchange from "@/components/Exchange"
+import styles from "../styles"
 
 export default function Home() {
+
   return (
-    <div className={`${styles.container} flex flex-col`}>
-      {/* Шапка прижата к верху */}
-      <header className={`${styles.header} mt-0`}>
-        <div className="flex items-center gap-2">
-          {/* Просто используем тег img, если не нужна оптимизация */}
-          <img 
+      <div className={styles.innerContainer}>
+        <header className={styles.header}>
+          <img
             src="/LogoUniswap.png" 
             alt="Uniswap Logo" 
-            className="w-20 h-20"
+            className="w-16 h-16" 
           />
-          <h1 className={styles.headTitle}>Uniswap 2.0</h1>
-        </div>
-        <ConnectButton />
-      </header>
-      
-      {/* Контент растягивается на оставшееся место */}
-      <div className="flex-1 flex justify-center items-start">
+          <ConnectButton />
+        </header>
         <div className={styles.exchangeContainer}>
-          {/* здесь будет интерфейс обмена */}
+          <h1 className={styles.headTitle}>Uniswap 2.0</h1>
+          <p className={styles.subTitle}>Exchange your tokens</p>
+
+          <div className={styles.exchangeBoxWrapper}>
+            <div className={styles.exchangeBox}>
+              <div className="pink_gradient" />
+              <div className={styles.exchange}>
+                <Exchange />
+              </div>
+              <div className="blue_gradient" />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  )
+  );
 }
