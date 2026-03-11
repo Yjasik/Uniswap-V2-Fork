@@ -1,0 +1,5 @@
+[profile.default]
+src = "lib/v2-periphery/contracts"
+out = "out/periphery"
+libs = ["lib"]
+solc = "0.6.6"

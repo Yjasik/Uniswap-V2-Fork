@@ -1,0 +1,5 @@
+[profile.default]
+src = "lib/v2-core/contracts"
+out = "out/core"
+libs = ["lib"]
+solc = "0.5.16"
