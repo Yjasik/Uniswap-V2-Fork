@@ -1,11 +1,13 @@
 // hooks/usePools.ts
 import { useEffect, useState } from "react";
-import { useConfig } from "wagmi";
-import { createPublicClient, http, formatUnits } from "viem";
-import { ROUTER_ADDRESS } from "@/constants/addresses";
-import { getFactoryInfo, getRouterInfo } from "@/utils";
+import { 
+  WETH_ADDRESS, 
+  USDC_ADDRESS, 
+  DAI_ADDRESS, 
+  PAIR_WETH_USDC_ADDRESS, 
+  PAIR_WETH_DAI_ADDRESS 
+} from "@/constants/addresses";
 
-// Типы для пулов
 export type Pool = {
   address: `0x${string}`;
   token0Address: `0x${string}`;
@@ -18,45 +20,40 @@ export type Pool = {
   reserve1: bigint;
 };
 
-export const loadPools = async (rpcUrl: string): Promise<Pool[]> => {
-  // Создаем публичный клиент viem
-  const publicClient = createPublicClient({
-    transport: http(rpcUrl),
-  });
-
-  // Получаем информацию о Router и Factory
-  const routerInfo = await getRouterInfo(ROUTER_ADDRESS, publicClient);
-  const factoryInfo = await getFactoryInfo(routerInfo.factory, publicClient);
-  
-  return factoryInfo.pairsInfo;
-}
-
 export const usePools = () => {
-  const { chains } = useConfig();
   const [loading, setLoading] = useState(true);
   const [pools, setPools] = useState<Pool[]>([]);
 
   useEffect(() => {
-    // Получаем текущую сеть
-    const currentChain = chains[0]; // или другая логика выбора сети
-    
-    if (!currentChain?.rpcUrls.default.http[0]) {
-      console.error("No RPC URL available");
-      return;
-    }
+    // Мок-данные на основе ваших развернутых контрактов
+    const mockPools: Pool[] = [
+      {
+        address: PAIR_WETH_USDC_ADDRESS,
+        token0Address: WETH_ADDRESS,
+        token0Name: "Wrapped Ether",
+        token0Symbol: "WETH",
+        token1Address: USDC_ADDRESS,
+        token1Name: "USD Coin",
+        token1Symbol: "USDC",
+        reserve0: 1000000000000000000n,
+        reserve1: 2000000000n,
+      },
+      {
+        address: PAIR_WETH_DAI_ADDRESS,
+        token0Address: WETH_ADDRESS,
+        token0Name: "Wrapped Ether",
+        token0Symbol: "WETH",
+        token1Address: DAI_ADDRESS,
+        token1Name: "Dai Stablecoin",
+        token1Symbol: "DAI",
+        reserve0: 500000000000000000n,
+        reserve1: 500000000000000000000n,
+      }
+    ];
 
-    const rpcUrl = currentChain.rpcUrls.default.http[0];
-    
-    loadPools(rpcUrl)
-      .then((loadedPools) => {
-        setPools(loadedPools);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Failed to load pools:", error);
-        setLoading(false);
-      });
-  }, [chains]); // Зависимость от chains
+    setPools(mockPools);
+    setLoading(false);
+  }, []);
 
   return [loading, pools] as const;
 };

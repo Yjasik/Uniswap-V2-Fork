@@ -3,9 +3,11 @@ pragma solidity ^0.8.24;
 
 import {Script, console} from "forge-std/Script.sol";
 import {MyToken} from "../src/tokens/MyToken.sol";
-import {WETH9} from "../src/tokens/WETH9.sol";
 
 address constant UNISWAP_V2_ROUTER = 0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008;
+address constant WETH = 0x17d88f10916A398131c248ae5C025ce93809C3f5;
+address constant USDC = 0x044A8172a9e9A5732A3aD1B3385013f4dDCD7D2d;
+address constant PAIR_WITH_LIQUIDITY = 0xdcC1ECC92b203cD96f41d910bb38082EE7Af4c5D; // Ваша реальная пара
 
 interface IUniswapV2Router02 {
     function addLiquidityETH(
@@ -18,6 +20,10 @@ interface IUniswapV2Router02 {
     ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
 }
 
+interface IUniswapV2Pair {
+    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+}
+
 contract AddLiquiditySimple is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -25,43 +31,65 @@ contract AddLiquiditySimple is Script {
         
         vm.startBroadcast(deployerPrivateKey);
 
-        address weth = 0x17d88f10916A398131c248ae5C025ce93809C3f5;
-        address usdc = 0x044A8172a9e9A5732A3aD1B3385013f4dDCD7D2d;
-        
         IUniswapV2Router02 router = IUniswapV2Router02(UNISWAP_V2_ROUTER);
         
-        // 1. Проверяем баланс ETH
-        console.log("Deployer ETH balance:", deployer.balance);
-        require(deployer.balance >= 0.01 ether, "Not enough ETH");
+        // Используем известный адрес пары с ликвидностью
+        address pair = PAIR_WITH_LIQUIDITY;
+        console.log("Using known pair with liquidity:", pair);
         
-        // 2. Проверяем баланс USDC
-        uint256 usdcBalance = MyToken(usdc).balanceOf(deployer);
-        console.log("USDC balance:", usdcBalance);
-        require(usdcBalance >= 10 * 10**18, "Not enough USDC");
+        // Получаем резервы
+        (uint112 reserve0, uint112 reserve1,) = IUniswapV2Pair(pair).getReserves();
+        console.log("Reserve0 (USDC):", uint256(reserve0) / 1e6, "USDC");
+        console.log("Reserve1 (WETH):", uint256(reserve1) / 1e18, "WETH");
         
-        // 3. Одобряем USDC для Router (ВАЖНО!)
-        MyToken(usdc).approve(UNISWAP_V2_ROUTER, 10 * 10**18);
+        // Проверяем, что резервы не нулевые
+        require(reserve0 > 0 && reserve1 > 0, "Pair has zero liquidity");
+        
+        // Рассчитываем курс
+        uint256 price = (uint256(reserve0) * 1e18) / uint256(reserve1);
+        console.log("Current price: 1 WETH =", price / 1e6, "USDC");
+        
+        // Проверяем балансы
+        uint256 ethBalance = deployer.balance;
+        console.log("ETH balance:", ethBalance / 1e18, "ETH");
+        
+        uint256 usdcBalance = MyToken(USDC).balanceOf(deployer);
+        console.log("USDC balance:", usdcBalance / 1e6, "USDC");
+        
+        // Добавляем небольшую ликвидность
+        uint256 ethToAdd = 0.1 ether; // 0.01 ETH
+        console.log("ETH to add:", ethToAdd / 1e18, "ETH");
+        
+        // Рассчитываем сколько USDC нужно
+        uint256 usdcNeeded = (ethToAdd * price) / 1e18;
+        console.log("USDC needed:", usdcNeeded / 1e6, "USDC");
+        
+        require(usdcBalance >= usdcNeeded, "Not enough USDC");
+        require(ethBalance >= ethToAdd, "Not enough ETH");
+        
+        // Одобряем USDC
+        MyToken(USDC).approve(UNISWAP_V2_ROUTER, usdcNeeded);
         console.log("USDC approved");
         
-        // 4. Добавляем ликвидность
-        console.log("Adding liquidity to USDC/WETH pair...");
-        console.log("Sending 0.01 ETH and 10 USDC");
+        // Добавляем ликвидность
+        console.log("Adding liquidity to correct pair...");
         
-        (uint amountUsdc, uint amountWeth, uint liquidity) = router.addLiquidityETH{value: 0.01 ether}(
-            usdc,           
-            10 * 10**18,    
-            0,              
-            0,              
-            deployer,       
+        (uint amountUsdc, uint amountWeth, uint liquidity) = router.addLiquidityETH{value: ethToAdd}(
+            USDC,
+            usdcNeeded,
+            0,
+            0,
+            deployer,
             block.timestamp + 1 hours
         );
         
-        console.log("  Liquidity added successfully!");
-        console.log("  USDC added:", amountUsdc);
-        console.log("  WETH added:", amountWeth);
-        console.log("  LP tokens received:", liquidity);
-        
-        console.log("Pair address: 0xaB22F32dC18Ac80e6A65B079d72f18040e2cC863");
+        console.log("========================================");
+        console.log(" Liquidity added to correct pair!");
+        console.log("========================================");
+        console.log("USDC added:", amountUsdc / 1e6, "USDC");
+        console.log("WETH added:", amountWeth / 1e18, "WETH");
+        console.log("LP tokens:", liquidity);
+        console.log("========================================");
 
         vm.stopBroadcast();
     }

@@ -138,7 +138,11 @@ export const useAmountsOut = ({
   amountIn, 
   fromToken, 
   toToken 
-}: UseAmountsOutParams): bigint => {
+}: {
+  amountIn: bigint;
+  fromToken?: `0x${string}`;
+  toToken?: `0x${string}`;
+}): bigint => {
   const isValidAmountIn = amountIn > 0n;
   const areParamsValid = !!(fromToken && toToken && isValidAmountIn);
 

@@ -5,7 +5,6 @@ import { formatUnits } from "viem";
 import Image from "next/image";
 import { useAmountsOut, useOnClickOutside } from "@/utils";
 import styles from "@/styles";
-import chevronDown from "@/assets/chevron-down.svg";
 
 interface AmountOutProps {
   fromToken?: `0x${string}`;
@@ -30,6 +29,7 @@ const AmountOut: React.FC<AmountOutProps> = ({
   const [activeCurrency, setActiveCurrency] = useState<string>("Select");
   const ref = useRef<HTMLUListElement>(null);
 
+  // Получаем расчетное количество токенов на выходе
   const amountOut = useAmountsOut({ amountIn, fromToken, toToken });
 
   useOnClickOutside(ref as React.RefObject<HTMLElement>, () => setShowList(false));
@@ -42,8 +42,57 @@ const AmountOut: React.FC<AmountOutProps> = ({
     }
   }, [currencyValue, currencies]);
 
-  // Форматируем сумму для отображения
+  // Форматируем сумму для отображения с защитой от undefined
   const formattedAmountOut = amountOut ? formatUnits(amountOut, 18) : "0.0";
+
+  // Если нет выбранного токена, показываем упрощенный вид
+  if (!toToken) {
+    return (
+      <div className={styles.amountContainer}>
+        <input
+          placeholder="0.0"
+          type="number"
+          value="0.0"
+          className={styles.amountInput}
+          disabled
+          readOnly
+        />
+        <div className="relative" onClick={() => setShowList(!showList)}>
+          <button className={styles.currencyButton} type="button">
+            <span>Select token</span>
+            <Image
+              src="/chevron-down.svg" 
+              alt="chevron-down"
+              width={16}
+              height={16}
+              className={`ml-2 transition-transform duration-200 ${
+                showList ? "rotate-180" : "rotate-0"
+              }`}
+            />
+          </button>
+          {showList && (
+            <ul ref={ref} className={styles.currencyList}>
+              {Object.entries(currencies).map(([tokenAddress, tokenName]) => (
+                <li
+                  key={tokenAddress}
+                  className={`${styles.currencyListItem} cursor-pointer ${
+                    activeCurrency === tokenName ? "bg-site-dim2" : ""
+                  }`}
+                  onClick={() => {
+                    onSelect(tokenAddress);
+                    setActiveCurrency(tokenName);
+                    setShowList(false);
+                  }}
+                >
+                  {tokenName}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.amountContainer}>
@@ -60,7 +109,7 @@ const AmountOut: React.FC<AmountOutProps> = ({
         <button className={styles.currencyButton} type="button">
           <span>{activeCurrency}</span>
           <Image
-            src={chevronDown}
+            src="/chevron-down.svg" 
             alt="chevron-down"
             width={16}
             height={16}

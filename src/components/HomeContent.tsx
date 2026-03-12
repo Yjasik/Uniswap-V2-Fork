@@ -1,8 +1,13 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit"
-import Exchange from "@/components/Exchange"
+import ExchangeOld from "@/components/ExchangeOld"
 import styles from "../styles"
+import type { Pool } from "@/hooks/usePools";
 
-export default function Home() {
+interface HomeContentProps {
+  pools: Pool[];  // ← ДОБАВИТЬ
+}
+
+export default function Homme({ pools }: HomeContentProps) { 
 
   return (
       <div className={styles.innerContainer}>
@@ -22,7 +27,7 @@ export default function Home() {
             <div className={styles.exchangeBox}>
               <div className="pink_gradient" />
               <div className={styles.exchange}>
-                <Exchange />
+                  <ExchangeOld pools={pools} /> 
               </div>
               <div className="blue_gradient" />
             </div>

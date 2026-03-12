@@ -11,17 +11,17 @@ interface BalanceProps {
 const Balance: React.FC<BalanceProps> = ({ 
   tokenBalance, 
   decimals = 18,
-  symbol 
+  symbol = 'ETH' 
 }) => {
-  if (!tokenBalance) return null;
-
-  const formattedBalance = formatUnits(tokenBalance, decimals);
+  const displayBalance = tokenBalance 
+    ? formatUnits(tokenBalance, decimals) 
+    : '0';
   
   return (
     <div className={styles.balance}>
       <p className={styles.balanceText}>
         <span className={styles.balanceBold}>Balance: </span>
-        {formattedBalance} {symbol}
+        {displayBalance} {symbol}
       </p>
     </div>
   );

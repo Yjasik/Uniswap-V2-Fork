@@ -1,50 +1,69 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
+import { parseUnits, createPublicClient, http } from "viem";
+import { sepolia } from "viem/chains";
+import { 
+  useAccount, 
+  useBalance, 
+  useReadContract, 
+  useWriteContract 
+} from "wagmi";
+import {
+  getAvailableTokens,
+  getCounterpartTokens,
+  findPoolByTokens,
+  isOperationPending,
+  getFailureMessage,
+  getSuccessMessage
+} from "@/utils";
+import { ROUTER_ADDRESS } from "@/constants/addresses";
 import AmountIn from "./AmountIn";
-import AmountOut from "./AmountOut"
+import AmountOut from "./AmountOut";
 import Balance from "./Balance";
-import  { getAvailableTokens, getCounterpartTokens, findPoolByTokens, isOperationPending, getFailureMessage, getSuccessMessage } from '../utils';
+import styles from "@/styles";
+import type { Pool } from "@/hooks/usePools";
+import routerABI from "@/abis/UniswapV2Router02.json";
+import erc20ABI from "@/abis/ERC20.json";
+import { useAmountsOut } from "@/utils";
 
+interface ExchangeProps {
+  pools: Pool[];
+}
 
-export default function Exchange() {
-    const [amountIn, setAmountIn] = useState("1.5");
-    const [selectedToken, setSelectedToken] = useState("0x123...");
-    const userBalance = BigInt(1827)
-
-    const testCurrencies = {
-    "0x1234567890123456789012345678901234567890": "Wrapped Ether",
-    "0x2345678901234567890123456789012345678901": "USD Coin",
-    "0x3456789012345678901234567890123456789012": "Dai Stablecoin",
-    "0x4567890123456789012345678901234567890123": "Uniswap"
+const Exchange = () => {
+  const dummyCurrencies = {
+    "ETH": "Ethereum",
+    "USDC": "USD Coin"
   };
-    return (
+
+  return (
     <div className="flex flex-col w-full items-center">
-      <div className="p-8">
+      <div className="mb-8">
         <AmountIn
-          value={amountIn}
-          onChange={setAmountIn}
-          currencyValue={selectedToken}
-          onSelect={setSelectedToken}
-          currencies={testCurrencies}
+        value="0.1"
+          onChange={() => {}}
+          currencyValue="ETH"
+          onSelect={() => {}}
+          currencies={dummyCurrencies}
           isSwapping={false}
-        />
-        <Balance 
-          tokenBalance={userBalance}  // bigint из viem
-          decimals={18}                // decimals токена (по умолчанию 18)
-          symbol="WETH"                 // символ токена (опционально)
-        />      
+          />
+        <Balance/>
       </div>
-      <div className="mb-8 w-[100%]">
+      <div className="mb-8 w-full">
         <AmountOut
-          fromToken={fromToken}
-          toToken={toToken}
-          amountIn={fromValueBigNumber}
-          pairContract={pairAddress}
-          currencyValue={toToken}
-          onSelect={onToTokenChange}
-          currencies={counterpartTokens}
+          fromToken="0x0000000000000000000000000000000000000000"
+          toToken="0x0000000000000000000000000000000000000000"
+          amountIn={100000000000000000n}
+          pairAddress="0x0000000000000000000000000000000000000000"
+          currencyValue="USDC"
+          onSelect={() => {}}
+          currencies={dummyCurrencies}
         />
-        <Balance tokenBalance={toTokenBalance} />
+        <Balance/>
       </div>
     </div>
   );
-}
+};
+
+export default Exchange;
