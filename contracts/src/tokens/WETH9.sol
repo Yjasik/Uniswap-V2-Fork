@@ -28,4 +28,9 @@ contract WETH9 {
     function totalSupply() public view returns (uint) {
         return address(this).balance;
     }  
+
+    function approve(address guy, uint wad) public returns (bool) {
+        allowance[msg.sender][guy] = wad;
+        return true;
+    }
 }
