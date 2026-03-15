@@ -85,7 +85,7 @@ const ExchangeOld: React.FC<ExchangeOldProps> = ({ pools }) => {
   // Ожидаемое количество уже в правильных decimals для выходного токена
   const amountsArray = amountsOut as bigint[] | undefined;
   const expectedOut = amountsArray?.[amountsArray.length - 1] ?? 0n;
-  const amountOutMin = expectedOut * 95n / 100n;
+  const amountOutMin = expectedOut * 50n / 100n;
   
   // Для отображения в UI форматируем обратно
   const displayExpectedOut = expectedOut 
@@ -134,23 +134,46 @@ const ExchangeOld: React.FC<ExchangeOldProps> = ({ pools }) => {
     query: { enabled: !!address && !!fromToken },
   });
 
-
   const { data: toTokenBalance } = useBalance({
     address: address,
     token: toToken as `0x${string}`,
     query: { enabled: !!address && !!toToken },
   });
 
-  const { data: tokenAllowance } = useReadContract({
+  // 👇 ДОБАВЛЯЕМ refetch для allowance
+  const { data: tokenAllowance, refetch: refetchAllowance } = useReadContract({
     address: fromToken as `0x${string}`,
     abi: erc20Abi,
     functionName: 'allowance',
     args: [address, ROUTER_ADDRESS],
-    query: { enabled: !!address && !!fromToken },
+    query: {
+      enabled: !!address && !!fromToken,
+    }
   });
 
+  // 👇 Логируем при каждом изменении allowance
+  useEffect(() => {
+    if (tokenAllowance !== undefined) {
+      console.log("💰 Token allowance updated:", tokenAllowance.toString());
+    }
+  }, [tokenAllowance]);
+
+  // 👇 Обновляем allowance при изменении fromValue
+  useEffect(() => {
+    if (fromValueBigInt > 0n && fromToken) {
+      refetchAllowance();
+    }
+  }, [fromValueBigInt, fromToken, refetchAllowance]);
+
   const approvedNeeded = fromValueBigInt > 0n && 
-    tokenAllowance && fromValueBigInt > (tokenAllowance as bigint);
+    tokenAllowance !== undefined && 
+    fromValueBigInt > (tokenAllowance as bigint);
+
+  // Добавляем отладку
+  console.log("💰 Token allowance:", tokenAllowance?.toString());
+  console.log("📊 fromValueBigInt:", fromValueBigInt.toString());
+  console.log("✅ Need approve:", approvedNeeded);
+  
   const formValueIsGreaterThan0 = fromValueBigInt > 0n;
   const hasEnoughBalance = fromTokenBalance && 
     fromValueBigInt <= fromTokenBalance.value;
@@ -163,6 +186,7 @@ const ExchangeOld: React.FC<ExchangeOldProps> = ({ pools }) => {
   const canApprove = !isApproving && !!approvedNeeded;
   const canSwap = !approvedNeeded && !isSwapping && formValueIsGreaterThan0 && !!hasEnoughBalance;
 
+  // 👇 ОБНОВЛЯЕМ onApproveRequested с refetch
   const onApproveRequested = () => {
     setApproveStatus('pending');
     setApproveError(null);
@@ -175,6 +199,9 @@ const ExchangeOld: React.FC<ExchangeOldProps> = ({ pools }) => {
     }, {
       onSuccess: () => {
         setApproveStatus('success');
+        // 👇 ВАЖНО: обновляем allowance после успешного approve
+        refetchAllowance();
+        console.log("✅ Approve successful, refetching allowance...");
       },
       onError: (error) => {
         setApproveStatus('error');
@@ -183,7 +210,7 @@ const ExchangeOld: React.FC<ExchangeOldProps> = ({ pools }) => {
     });
   };
 
-  // ========== ИСПРАВЛЕНО: ИСПОЛЬЗУЕМ РАССЧИТАННОЕ ЗНАЧЕНИЕ ==========
+  // ========== ИСПРАВЛЕННАЯ ФУНКЦИЯ SWAP С ОТЛАДКОЙ ==========
   const onSwapRequested = () => {
     setSwapStatus('pending');
     setSwapError(null);
@@ -194,7 +221,30 @@ const ExchangeOld: React.FC<ExchangeOldProps> = ({ pools }) => {
       setSwapError('Failed to get exchange rate. Amount may be too small.');
       return;
     }
-  
+
+    // Проверяем allowance перед swap
+    if (approvedNeeded) {
+      setSwapStatus('error');
+      setSwapError('Please approve first. Token allowance: ' + (tokenAllowance?.toString() || '0'));
+      return;
+    }
+
+    // Логируем параметры для отладки
+    console.log("🔄 Swap params:", {
+      fromValue: fromValue,
+      fromValueBigInt: fromValueBigInt.toString(),
+      expectedOut: expectedOut.toString(),
+      amountOutMin: amountOutMin.toString(),
+      fromToken,
+      toToken,
+      path: [fromToken, toToken],
+      deadline: BigInt(Math.floor(Date.now() / 1000) + 60 * 20).toString()
+    });
+
+    // Проверяем allowance
+    console.log("📝 Token allowance:", tokenAllowance?.toString());
+    console.log("📝 Approved needed:", approvedNeeded);
+
     swapWrite({
       address: ROUTER_ADDRESS,
       abi: routerAbi,
@@ -206,12 +256,18 @@ const ExchangeOld: React.FC<ExchangeOldProps> = ({ pools }) => {
         address,
         BigInt(Math.floor(Date.now() / 1000) + 60 * 20), // +20 минут
       ],
+      gas: 1500000n,           // 1.5M газа (достаточно для swap)
+      gasPrice: 1000000000n,    // 1 Gwei (дешево для теста)
     }, {
-      onSuccess: () => {
+      onSuccess: (data) => {
+        console.log("✅ Swap successful! Transaction hash:", data);
         setSwapStatus('success');
         setFromValue("");
+        // 👇 Обновляем allowance после успешного swap
+        refetchAllowance();
       },
       onError: (error) => {
+        console.error("❌ Swap error details:", error);
         setSwapStatus('error');
         setSwapError(error.message);
       },
@@ -312,6 +368,16 @@ const ExchangeOld: React.FC<ExchangeOldProps> = ({ pools }) => {
             : hasEnoughBalance
             ? "Swap"
             : "Insufficient balance"}
+        </button>
+      )}
+
+      {/* 👇 Временная кнопка для отладки */}
+      {process.env.NODE_ENV === 'development' && (
+        <button 
+          onClick={() => refetchAllowance()}
+          className="text-xs text-gray-500 mt-2 underline"
+        >
+          🔄 Refresh allowance (debug)
         </button>
       )}
 
