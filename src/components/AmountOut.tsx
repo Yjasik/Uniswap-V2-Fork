@@ -29,7 +29,6 @@ const AmountOut: React.FC<AmountOutProps> = ({
   const [activeCurrency, setActiveCurrency] = useState<string>("Select");
   const ref = useRef<HTMLUListElement>(null);
 
-  // Получаем расчетное количество токенов на выходе
   const amountOut = useAmountsOut({ amountIn, fromToken, toToken });
 
   useOnClickOutside(ref as React.RefObject<HTMLElement>, () => setShowList(false));
@@ -42,10 +41,8 @@ const AmountOut: React.FC<AmountOutProps> = ({
     }
   }, [currencyValue, currencies]);
 
-  // Форматируем сумму для отображения с защитой от undefined
   const formattedAmountOut = amountOut ? formatUnits(amountOut, 18) : "0.0";
 
-  // Если нет выбранного токена, показываем упрощенный вид
   if (!toToken) {
     return (
       <div className={styles.amountContainer}>
@@ -59,7 +56,7 @@ const AmountOut: React.FC<AmountOutProps> = ({
         />
         <div className="relative" onClick={() => setShowList(!showList)}>
           <button className={styles.currencyButton} type="button">
-            <span>Select token</span>
+            <span>Select</span>
             <Image
               src="/chevron-down.svg" 
               alt="chevron-down"

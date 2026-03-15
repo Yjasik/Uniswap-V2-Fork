@@ -1,10 +1,8 @@
-// src/utils/index.ts
 export { getFactoryInfo } from './factory';
 export { getPairsInfo } from './getPairsInfo';
 export { getTokenInfo } from './getTokenInfo';
 export { getRouterInfo } from './router';
 
-// Типы тоже можно экспортировать
 export type { FactoryInfo } from './factory';
 export type { PairInfo } from './getPairsInfo';
 export type { TokenInfo } from './getTokenInfo';

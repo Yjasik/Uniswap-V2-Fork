@@ -50,13 +50,9 @@ contract DeployTokensScript is Script {
         logAddresses();
     }
 
-    function deployContracts() internal {
-        // Деплой WETH
-        weth = new WETH9();
-        console.log("WETH deployed at:", address(weth));
+    function deployContracts() internal 
 
-        // Деплой тестовых токенов
-        usdc = new MyToken("USDC", "USDC", 1000000);
+        weth = new MyToken("WETH", "WETH", 1000000);
         dai = new MyToken("DAI", "DAI", 1000000);
         console.log("USDC deployed at:", address(usdc));
         console.log("DAI deployed at:", address(dai));

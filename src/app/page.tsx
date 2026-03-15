@@ -3,17 +3,17 @@ import HomeContent from "@/components/HomeContent"
 import styles from "@/styles"
 import { ConnectButton } from "@rainbow-me/rainbowkit"
 import { useAccount } from "wagmi"
-import { usePools } from "@/hooks/usePools"  // ← ДОБАВИТЬ!
+import { usePools } from "@/hooks/usePools" 
 
 export default function Home() {
     const { isConnected } = useAccount()
-    const [loading, pools] = usePools()  // ← ДОБАВИТЬ!
+    const [loading, pools] = usePools()
 
     if (loading) {
       return (
         <div className={styles.container}>
           <div className={styles.innerContainer}>
-            <div className={styles.message}>Loading pools...</div>
+            <div className={styles.message}>Loading dApp...</div>
           </div>
         </div>
       );

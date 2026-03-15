@@ -3,7 +3,6 @@ pragma solidity ^0.8.24;
 
 import {Script, console} from "forge-std/Script.sol";
 import {MyToken} from "../src/tokens/MyToken.sol";
-import {WETH9} from "../src/tokens/WETH9.sol";
 
 address constant UNISWAP_V2_FACTORY = 0x7E0987E5b3a30e3f2828572Bb659A548460a3003;
 address constant UNISWAP_V2_ROUTER = 0xC532a74256D3Db42D0Bf7a0400fEFDbad7694008;
